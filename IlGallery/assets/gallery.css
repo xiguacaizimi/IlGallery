@@ -31,10 +31,12 @@
 .album-page-heading h1,
 .album-detail-heading h1 {
     margin: 0;
-    color: var(--bs-emphasis-color);
-    font-size: 26px;
-    line-height: 1.3;
-    font-weight: 700;
+    color: var(--bs-body-color);
+    /* 跟随主题页面标题（card-title fs-3）的排版：细体 300 / 1.75rem；
+       字体本身由主题的全局 font-family 规则接管，这里不另行指定 */
+    font-size: 1.75rem;
+    line-height: 1.2;
+    font-weight: 300;
 }
 
 .album-page-heading p,
