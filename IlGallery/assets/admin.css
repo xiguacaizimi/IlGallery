@@ -725,16 +725,132 @@ h2.ilg-page-title a.btn.primary:hover {
         align-items: flex-start;
     }
 
-    /* 相册列表的表格列多，窄屏下改为容器内横向滚动，
-       否则整个后台页面会被 7 列表格撑破，出现整页左右拖动 */
+    /* 相册列表：7 列表格在手机上会把「相册」这一列压到只剩几像素，
+       文字被逼成竖排。这里直接把表格转成卡片列表，一行相册一张卡片 */
     .ilg-panel .typecho-table-wrap {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
+        overflow-x: visible !important;
         max-width: 100% !important;
+        border: 0;
     }
 
     .ilg-panel .ilg-table {
-        min-width: 660px;
+        display: block;
+        width: 100% !important;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .ilg-panel .ilg-table colgroup,
+    .ilg-panel .ilg-table thead {
+        display: none;
+    }
+
+    .ilg-panel .ilg-table tbody {
+        display: block;
+    }
+
+    .ilg-panel .ilg-table tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px 12px;
+        padding: 12px;
+        margin-bottom: 10px;
+        background: var(--bs-body-bg, #fff);
+        border: 1px solid var(--bs-border-color, #ddd);
+        border-radius: 6px;
+    }
+
+    .ilg-panel .ilg-table tbody td {
+        display: block;
+        width: auto;
+        padding: 0;
+        border: 0;
+        font-size: 13px;
+        text-align: left;
+    }
+
+    /* 封面 | 相册名（标题 + 描述）| 地址独占一行 | 数字与状态同一行 | 操作独占一行 */
+    .ilg-panel .ilg-table td:nth-child(1) {
+        flex: 0 0 64px;
+    }
+
+    .ilg-panel .ilg-table td:nth-child(2) {
+        flex: 1 1 140px;
+        min-width: 0;
+    }
+
+    .ilg-panel .ilg-table td:nth-child(3) {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .ilg-panel .ilg-table td:nth-child(4),
+    .ilg-panel .ilg-table td:nth-child(5) {
+        flex: 0 0 auto;
+        color: var(--bs-secondary-color, #888);
+    }
+
+    .ilg-panel .ilg-table td:nth-child(6) {
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+
+    .ilg-panel .ilg-table td:nth-child(7) {
+        flex: 1 1 100%;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding-top: 2px;
+    }
+
+    /* 操作项加大可点范围，手指更容易点中 */
+    .ilg-panel .ilg-table td:nth-child(7) > a,
+    .ilg-panel .ilg-table td:nth-child(7) .ilg-inline button {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 8px;
+        margin: 0;
+    }
+
+    .ilg-panel .ilg-table td:nth-child(7) .ilg-inline {
+        display: inline-flex;
+        align-items: center;
+        margin: 0;
+    }
+
+    /* 光秃秃的数字补上说明 */
+    .ilg-panel .ilg-table td:nth-child(4)::before {
+        content: "照片 ";
+    }
+
+    .ilg-panel .ilg-table td:nth-child(5)::before {
+        content: "排序 ";
+    }
+
+    /* 地址很长时按字符折行，不要撑出卡片 */
+    .ilg-panel .ilg-table .ilg-slug {
+        display: inline-block;
+        max-width: 100%;
+        word-break: break-all;
+        white-space: normal;
+    }
+
+    .ilg-panel .ilg-table .ilg-row-name {
+        font-size: 14px;
+    }
+
+    .ilg-panel .ilg-table .ilg-row-desc {
+        margin-top: 2px;
+        line-height: 1.5;
+    }
+
+    /* 封面缩略图跟随卡片尺寸 */
+    .ilg-panel .ilg-table .ilg-cover {
+        width: 64px;
+        height: 48px;
     }
 
     /* 卡片上的文字按钮触控区域偏小，撑高到便于点按的高度 */
@@ -763,9 +879,31 @@ h2.ilg-page-title a.btn.primary:hover {
         width: 100% !important;
     }
 
-    /* 顶部标题与「新建相册」按钮换行排布 */
+    /* 标题一行、操作按钮一行，避免在窄屏上互相挤压 */
     .ilg-page-title {
-        gap: 6px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ilg-page-title .ilg-title-text {
+        flex: 1 1 100%;
+        margin-bottom: 2px;
+    }
+
+    .ilg-page-title > .btn,
+    h2.ilg-page-title > a.btn,
+    h2.ilg-page-title > .btn {
+        height: 34px;
+        line-height: 34px;
+        padding: 0 12px;
+        font-size: 13px;
+    }
+
+    /* 「共 N 个相册」与标题之间留白收紧 */
+    .ilg-panel .typecho-list-operate {
+        margin: 10px 0;
     }
 }
 

@@ -353,7 +353,7 @@ include __TYPECHO_ROOT_DIR__ . '/admin/header.php';
 
         <?php if ($view === 'list'): ?>
             <h2 class="typecho-page-title ilg-page-title">
-                图库相册
+                <span class="ilg-title-text">图库相册</span>
                 <a class="btn primary" href="<?php echo htmlspecialchars(ilg_url($panelUrl, ['do' => 'edit'])); ?>">
                     新建相册
                 </a>
@@ -465,7 +465,7 @@ include __TYPECHO_ROOT_DIR__ . '/admin/header.php';
 
         <?php elseif ($view === 'edit'): ?>
             <h2 class="typecho-page-title ilg-page-title">
-                <?php echo $form['id'] > 0 ? '编辑相册' : '新建相册'; ?>
+                <span class="ilg-title-text"><?php echo $form['id'] > 0 ? '编辑相册' : '新建相册'; ?></span>
                 <a class="btn" href="<?php echo htmlspecialchars($panelUrl); ?>">返回列表</a>
             </h2>
 
