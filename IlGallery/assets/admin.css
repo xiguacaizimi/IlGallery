@@ -1,0 +1,754 @@
+/**
+ * 图库相册 · 后台样式
+ * 以 Typecho 后台的灰白配色为基准，只补充图库特有的卡片与上传区
+ */
+
+/* Typecho 1.3.x 把后台内容容器 .container 定义成了
+   display:flex + flex-wrap:wrap，面板里的每个区块都会被当成 flex 项。
+   如果不声明宽度，它们会按内容宽度并排挤在一行（1.2.x 下没有这个问题）。
+   这里让面板与它的每个区块都独占整行，1.2.x / 1.3.x 下都保持一致。
+   注意：只约束宽度，不碰 display，避免破坏区块内部的 flex / grid 布局 */
+.ilg-panel,
+.ilg-hint,
+.ilg-drop,
+.ilg-album-summary,
+.ilg-photo-admin,
+.ilg-tips,
+.ilg-form,
+.typecho-table-wrap,
+.typecho-list-operate {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+    float: none !important;
+    box-sizing: border-box;
+}
+
+/* 自身就是 flex / grid 容器的区块，保持内部排版方式 */
+.ilg-panel .ilg-hint,
+.ilg-panel .ilg-album-summary {
+    display: flex !important;
+}
+
+.ilg-panel .ilg-photo-admin {
+    display: grid !important;
+}
+
+.ilg-panel > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important;
+    float: none !important;
+    box-sizing: border-box;
+}
+
+.ilg-panel .ilg-photo-admin {
+    display: grid !important;
+}
+
+.ilg-panel .ilg-cover-grid {
+    display: flex !important;
+}
+
+/* Typecho 1.3.x 的后台样式里有 button[type="submit"] { width: 100% }，
+   并且没有基础 .btn 的外观定义，会让插件里的按钮被拉伸、样式丢失。
+   这里给面板内的按钮自带一套外观，1.2.x / 1.3.x 下显示保持一致 */
+.ilg-panel button {
+    width: auto !important;
+    max-width: 100% !important;
+}
+
+.ilg-panel .btn,
+.ilg-panel a.btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 32px;
+    line-height: 1;
+    padding: 0 14px;
+    margin: 0;
+    font-size: 13px;
+    font-weight: normal;
+    font-family: inherit;
+    color: #555;
+    background: #E9E9E6;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.ilg-panel .btn:hover,
+.ilg-panel a.btn:hover {
+    background: #dbdbd6;
+    color: #333;
+    text-decoration: none;
+}
+
+.ilg-panel .btn.primary,
+.ilg-panel a.btn.primary {
+    background: #467B96;
+    color: #fff;
+}
+
+.ilg-panel .btn.primary:hover,
+.ilg-panel a.btn.primary:hover {
+    background: #3c6a81;
+}
+
+.ilg-page-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ilg-page-title > a.btn,
+.ilg-page-title > .btn {
+    margin-left: 0;
+}
+
+.typecho-page-title.ilg-page-title h2,
+h2.ilg-page-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 1.28571em;
+    margin: 25px 0 14px;
+}
+
+h2.ilg-page-title a.btn,
+h2.ilg-page-title .btn {
+    height: 28px;
+    line-height: 28px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: normal;
+    background: #E9E9E6;
+    color: #555;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+h2.ilg-page-title a.btn:hover {
+    background: #dbdbd6;
+    color: #333;
+    text-decoration: none;
+}
+
+h2.ilg-page-title a.btn.primary {
+    background: #467B96;
+    color: #fff;
+}
+
+h2.ilg-page-title a.btn.primary:hover {
+    background: #3c6a81;
+}
+
+/* ---------- 顶部提示 ---------- */
+.ilg-hint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: #FFF;
+    border: 1px solid #E9E9E6;
+    border-left: 3px solid #467B96;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: #666;
+    flex-wrap: wrap;
+}
+
+.ilg-hint-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ilg-hint strong {
+    color: #333;
+}
+
+.ilg-hint code,
+.ilg-slug,
+.ilg-summary-meta code {
+    background: #F6F6F3;
+    border: 1px solid #ECECE7;
+    border-radius: 2px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: #467B96;
+    word-break: break-all;
+}
+
+/* ---------- 相册列表 ---------- */
+.ilg-table td {
+    vertical-align: middle;
+}
+
+.ilg-cover {
+    position: relative;
+    display: block;
+    width: 64px;
+    height: 48px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #F0F0EC;
+    border: 1px solid #ECECE7;
+}
+
+.ilg-cover img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block;
+}
+
+.ilg-cover-blank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #AAA;
+    font-size: 12px;
+}
+
+.ilg-row-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 3px;
+}
+
+.ilg-row-desc {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.5;
+}
+
+.ilg-status {
+    display: inline-block;
+    font-size: 12px;
+    color: #999;
+    padding: 1px 7px;
+    border-radius: 2px;
+    background: #F0F0EC;
+}
+
+.ilg-status.is-on {
+    color: #26A36A;
+    background: rgba(38, 163, 106, .1);
+}
+
+.ilg-actions {
+    white-space: nowrap;
+}
+
+.ilg-actions > a,
+.ilg-actions .ilg-inline button {
+    margin-right: 6px;
+    color: #467B96;
+}
+
+.ilg-inline {
+    display: inline;
+    margin: 0;
+}
+
+.ilg-link-danger {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: #B94A48;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+}
+
+.ilg-link-danger:hover {
+    text-decoration: underline;
+}
+
+.ilg-admin-empty,
+.ilg-photo-admin-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    background: #FFF;
+    border: 1px solid #E9E9E6;
+}
+
+.ilg-admin-empty p,
+.ilg-photo-admin-empty p {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: #555;
+}
+
+.ilg-admin-empty small,
+.ilg-photo-admin-empty small {
+    font-size: 12px;
+}
+
+/* ---------- 使用说明 ---------- */
+.ilg-tips {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: #FFF;
+    border: 1px solid #E9E9E6;
+    font-size: 13px;
+    color: #666;
+}
+
+.ilg-tips h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.ilg-tips ol {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.9;
+}
+
+/* ---------- 相册表单 ---------- */
+.ilg-form {
+    background: #FFF;
+    border: 1px solid #E9E9E6;
+    padding: 8px 24px 24px;
+    max-width: 860px;
+}
+
+.ilg-form .typecho-option {
+    margin: 0;
+    padding: 0;
+}
+
+.ilg-form .typecho-option li {
+    border-bottom: 1px solid #F3F3EF;
+    padding: 18px 0 16px;
+}
+
+.ilg-form .typecho-option li:last-child {
+    border-bottom: none;
+}
+
+.ilg-form .typecho-label {
+    display: block;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 7px;
+    font-size: 13px;
+}
+
+.ilg-required {
+    color: #B94A48;
+}
+
+.ilg-form input.text,
+.ilg-form textarea.text,
+.ilg-form select.text {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #D9D9D6;
+    border-radius: 2px;
+    padding: 8px 10px;
+    font-size: 13px;
+    background: #FFF;
+    color: #333;
+    line-height: 1.5;
+}
+
+.ilg-form textarea.text {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.ilg-form input.text:focus,
+.ilg-form textarea.text:focus,
+.ilg-form select.text:focus {
+    border-color: #467B96;
+    outline: none;
+}
+
+.ilg-form .description {
+    margin: 7px 0 0;
+    font-size: 12px;
+    color: #999;
+}
+
+.ilg-form-row {
+    display: flex;
+    gap: 24px;
+}
+
+.ilg-form-row > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.ilg-form-submit {
+    display: flex;
+    gap: 10px;
+    padding-top: 20px;
+}
+
+.ilg-note {
+    background: #FBFBF8;
+    border: 1px dashed #D9D9D6;
+    color: #888;
+    font-size: 12px;
+    padding: 12px 14px;
+    margin: 6px 0 18px;
+}
+
+/* ---------- 封面选择 ---------- */
+.ilg-cover-picker {
+    border-top: 1px solid #F3F3EF;
+    padding: 18px 0 6px;
+}
+
+.ilg-cover-picker h3 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: #333;
+}
+
+.ilg-cover-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.ilg-cover-item {
+    position: relative;
+    width: 86px;
+    height: 66px;
+    border: 2px solid transparent;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #F6F6F3;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ilg-cover-item img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block;
+}
+
+.ilg-cover-item input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ilg-cover-item.is-active {
+    border-color: #467B96;
+}
+
+.ilg-cover-item:hover {
+    border-color: #A9C3D1;
+}
+
+.ilg-cover-auto {
+    font-size: 12px;
+    color: #888;
+}
+
+/* ---------- 照片管理 ---------- */
+.ilg-album-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    flex-wrap: wrap;
+    background: #FFF;
+    border: 1px solid #E9E9E6;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+}
+
+.ilg-summary-num {
+    font-size: 26px;
+    font-weight: bold;
+    color: #333;
+    line-height: 1;
+}
+
+.ilg-summary-label {
+    font-size: 12px;
+    color: #999;
+    margin-left: 4px;
+}
+
+.ilg-summary-meta {
+    font-size: 12px;
+    color: #999;
+}
+
+/* 上传区 */
+.ilg-drop {
+    position: relative;
+    border: 2px dashed #D9D9D6;
+    border-radius: 4px;
+    background: #FFF;
+    padding: 26px 20px;
+    text-align: center;
+    color: #888;
+    cursor: pointer;
+    transition: border-color .2s ease, background .2s ease;
+}
+
+.ilg-drop:hover,
+.ilg-drop.is-over {
+    border-color: #467B96;
+    background: #FAFCFD;
+    color: #467B96;
+}
+
+.ilg-drop svg {
+    opacity: .7;
+    margin-bottom: 6px;
+}
+
+.ilg-drop p {
+    margin: 0 0 4px;
+    font-size: 14px;
+    color: #555;
+}
+
+.ilg-drop:hover p,
+.ilg-drop.is-over p {
+    color: #467B96;
+}
+
+.ilg-drop small {
+    font-size: 12px;
+    color: #AAA;
+}
+
+.ilg-drop.is-busy {
+    pointer-events: none;
+    opacity: .7;
+}
+
+.ilg-drop-progress {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #467B96;
+    min-height: 0;
+}
+
+/* 卡片网格 */
+.ilg-photo-admin {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.ilg-card {
+    background: #FFF;
+    border: 1px solid #E9E9E6;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: box-shadow .2s ease, border-color .2s ease;
+}
+
+.ilg-card:hover {
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .08);
+}
+
+.ilg-card.is-dragging {
+    opacity: .45;
+}
+
+.ilg-card.is-over {
+    border-color: #467B96;
+    box-shadow: 0 0 0 2px rgba(70, 123, 150, .2);
+}
+
+.ilg-card-media {
+    position: relative;
+    /* 用 padding 撑出 1:1 区域，不依赖 aspect-ratio，
+       避免后台管理皮肤重置 img 高度后缩略图参差不齐 */
+    height: 0;
+    padding-top: 100%;
+    background: #F6F6F3;
+    overflow: hidden;
+}
+
+.ilg-card-media img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block;
+}
+
+.ilg-card-badge {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    padding: 2px 7px;
+    font-size: 11px;
+    color: #fff;
+    background: rgba(0, 0, 0, .5);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+
+.ilg-card-badge.is-on {
+    opacity: 1;
+    background: #467B96;
+}
+
+.ilg-card-drag {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, .42);
+    color: #fff;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+
+.ilg-card:hover .ilg-card-drag {
+    opacity: 1;
+}
+
+.ilg-card-title {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0;
+    border-bottom: 1px solid #F3F3EF;
+    padding: 9px 10px;
+    font-size: 12px;
+    color: #333;
+    background: #FFF;
+    outline: none;
+    text-overflow: ellipsis;
+}
+
+.ilg-card-title:focus {
+    background: #FAFCFD;
+    border-bottom-color: #467B96;
+}
+
+.ilg-card-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 10px 0;
+    font-size: 11px;
+    color: #AAA;
+}
+
+.ilg-card-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px 10px;
+}
+
+.ilg-card-actions button {
+    border: 0;
+    background: none;
+    padding: 0;
+    font-size: 12px;
+    color: #467B96;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.ilg-card-actions button:hover {
+    text-decoration: underline;
+}
+
+.ilg-card-actions button.ilg-link-danger {
+    color: #B94A48;
+}
+
+/* 小屏适配 */
+@media (max-width: 767px) {
+    .ilg-form {
+        padding: 6px 14px 18px;
+    }
+
+    .ilg-form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ilg-photo-admin {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+    }
+
+    .ilg-hint {
+        align-items: flex-start;
+    }
+}
+
+/* 右下角提示 */
+.ilg-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 9999;
+    max-width: 320px;
+    padding: 10px 16px;
+    background: #333;
+    color: #fff;
+    font-size: 13px;
+    border-radius: 3px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.ilg-toast.is-show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.ilg-toast.is-error {
+    background: #B94A48;
+}
