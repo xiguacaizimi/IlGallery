@@ -365,7 +365,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    touch-action: none;
+    /* 纵向手势交给浏览器滚动页面，横向手势留给 JS 做左右滑动切图 */
+    touch-action: pan-y;
 }
 
 .ilg-canvas.is-dragging {
@@ -708,6 +709,7 @@
 
     .album-photo-count {
         margin-top: 6px;
+        font-size: 12px;
     }
 
     .album-viewer {
@@ -730,7 +732,7 @@
     }
 
     .album-photo-stage {
-        height: min(68vh, 560px);
+        height: min(62vh, 520px);
         border-right: 0;
         border-left: 0;
         border-radius: 0;
@@ -739,11 +741,35 @@
     .album-photo-tools {
         top: 8px;
         right: 8px;
+        gap: 4px;
+    }
+
+    /* 触摸目标放大：手指点按需要足够大的命中区域 */
+    .album-photo-tools button {
+        width: 44px;
+        height: 42px;
     }
 
     .album-stage-arrow {
-        width: 34px;
-        height: 52px;
+        width: 42px;
+        height: 58px;
+        opacity: .92;
+    }
+
+    /* 查看器顶部的面包屑、标题链接，加大可点区域 */
+    .album-viewer-header a,
+    .album-viewer-heading a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+    }
+
+    /* 照片墙左上角的返回链接 */
+    .album-back-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding-right: 10px;
     }
 
     .album-photo-article {
@@ -773,5 +799,67 @@
         flex-basis: 58px;
         width: 58px;
         height: 58px;
+    }
+}
+
+/* ---------- 触摸设备通用适配 ----------
+   手机横屏（如 812×375）宽度会越过 767px 断点，此时仍需放大触摸目标。
+   用指针类型判断比宽度更准确 */
+@media (hover: none) and (pointer: coarse) {
+    .album-photo-tools button {
+        width: 44px;
+        height: 42px;
+    }
+
+    .album-stage-arrow {
+        width: 42px;
+        height: 58px;
+    }
+
+    .album-viewer-header a,
+    .album-viewer-heading a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+    }
+
+    .album-back-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding-right: 10px;
+    }
+
+    .photo-preview-item {
+        flex-basis: 60px;
+        width: 60px;
+        height: 60px;
+    }
+
+    .album-filmstrip-arrow {
+        width: 40px;
+    }
+
+    /* 分页按钮放大到便于点按 */
+    .album-pagination a {
+        width: 42px;
+        height: 42px;
+        font-size: 13px;
+    }
+}
+
+/* 矮视口（手机横屏）：舞台按视口高度收缩，避免图片区域高过屏幕 */
+@media (max-height: 560px) {
+    .album-photo-stage {
+        height: 68vh;
+        min-height: 200px;
+    }
+
+    .album-viewer {
+        padding-top: 10px;
+    }
+
+    .album-filmstrip {
+        margin-top: 10px;
     }
 }

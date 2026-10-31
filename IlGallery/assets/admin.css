@@ -724,6 +724,49 @@ h2.ilg-page-title a.btn.primary:hover {
     .ilg-hint {
         align-items: flex-start;
     }
+
+    /* 相册列表的表格列多，窄屏下改为容器内横向滚动，
+       否则整个后台页面会被 7 列表格撑破，出现整页左右拖动 */
+    .ilg-panel .typecho-table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100% !important;
+    }
+
+    .ilg-panel .ilg-table {
+        min-width: 660px;
+    }
+
+    /* 卡片上的文字按钮触控区域偏小，撑高到便于点按的高度 */
+    .ilg-card-actions button,
+    .ilg-actions .ilg-inline button,
+    .ilg-actions > a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+
+    /* 提示区的「修复页面与路由」按钮独占一行，避免和文字挤在一起 */
+    .ilg-hint {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ilg-hint form {
+        width: 100%;
+        margin-top: 4px;
+    }
+
+    .ilg-hint form .btn {
+        width: 100% !important;
+    }
+
+    /* 顶部标题与「新建相册」按钮换行排布 */
+    .ilg-page-title {
+        gap: 6px;
+    }
 }
 
 /* 右下角提示 */

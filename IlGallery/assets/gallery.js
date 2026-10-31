@@ -501,6 +501,57 @@
     canvas.addEventListener('pointerup', endDrag);
     canvas.addEventListener('pointercancel', endDrag);
 
+    /* ---------- 触摸滑动切图 ----------
+       未放大时单指左右滑动切换上一张 / 下一张；
+       放大后单指滑动仍然是平移图片（由上面的拖拽逻辑处理）。 */
+    var swipeStartX = 0;
+    var swipeStartY = 0;
+    var swipeStartAt = 0;
+    var swipeTracking = false;
+
+    canvas.addEventListener('pointerdown', function (event) {
+        if (zoom > 1 || event.pointerType === 'mouse') {
+            swipeTracking = false;
+            return;
+        }
+
+        swipeTracking = true;
+        swipeStartX = event.clientX;
+        swipeStartY = event.clientY;
+        swipeStartAt = Date.now();
+    });
+
+    canvas.addEventListener('pointerup', function (event) {
+        if (!swipeTracking) {
+            return;
+        }
+
+        swipeTracking = false;
+
+        if (zoom > 1) {
+            return;
+        }
+
+        var dx = event.clientX - swipeStartX;
+        var dy = event.clientY - swipeStartY;
+        var elapsed = Date.now() - swipeStartAt;
+
+        // 滑动要够快、够远，且以横向为主，才判定为切图
+        if (elapsed > 800 || Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.4) {
+            return;
+        }
+
+        if (dx > 0) {
+            open(Math.max(0, current - 1), true);
+        } else {
+            open(Math.min(photos.length - 1, current + 1), true);
+        }
+    });
+
+    canvas.addEventListener('pointercancel', function () {
+        swipeTracking = false;
+    });
+
     listen(document, 'keydown', function (event) {
         if (!opened) {
             return;
