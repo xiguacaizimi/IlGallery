@@ -10,7 +10,7 @@
  *
  * @package 图库相册
  * @author xiguacaizimi
- * @version 1.1.7
+ * @version 1.1.8
  * @link https://www.xiguacaizimi.top
  */
 
@@ -30,7 +30,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
 class Plugin implements PluginInterface
 {
     /** 插件版本 */
-    public const VERSION = '1.1.7';
+    public const VERSION = '1.1.8';
 
     /** 前台图库路由名 */
     public const ROUTE = 'ilgallery';
@@ -79,10 +79,7 @@ class Plugin implements PluginInterface
     public static function deactivate()
     {
         $db = Db::get();
-        $row = $db->fetchRow(
-            $db->select('value')->from('table.options')->where('name = ?', 'panelTable')->limit(1)
-        );
-        $table = empty($row['value']) ? [] : @unserialize($row['value']);
+        $table = self::readPanelTable();
 
         if (is_array($table)) {
             $table['parent'] = $table['parent'] ?? [];
@@ -109,10 +106,7 @@ class Plugin implements PluginInterface
                 return $file !== $panelKey;
             }));
 
-            \Widget\Base\Options::alloc()->update(
-                ['value' => serialize($table)],
-                $db->sql()->where('name = ?', 'panelTable')
-            );
+            self::writePanelTable($table);
         }
 
         Helper::removeRoute(self::ROUTE);
@@ -257,6 +251,67 @@ class Plugin implements PluginInterface
     }
 
     /**
+     * 读取后台菜单表。
+     *
+     * Typecho 1.3 起 options 表里的数组字段改用 JSON 保存，1.2 及以前是 PHP serialize()，
+     * 这里两种格式都认，否则在 1.3 上会读出 false，
+     * 导致误以为菜单表是空的，把别的插件菜单全部覆盖掉。
+     *
+     * @return array
+     */
+    private static function readPanelTable(): array
+    {
+        $db = Db::get();
+        $row = $db->fetchRow(
+            $db->select('value')->from('table.options')->where('name = ?', 'panelTable')->limit(1)
+        );
+
+        $raw = (string) ($row['value'] ?? '');
+        if ($raw === '') {
+            return [];
+        }
+
+        $isSerialized = strpos($raw, 'a:') === 0 || $raw === 'b:0;';
+        $table = $isSerialized ? @unserialize($raw) : json_decode($raw, true);
+
+        return is_array($table) ? $table : [];
+    }
+
+    /**
+     * 写回后台菜单表（按当前 Typecho 版本选择 serialize 或 JSON）。
+     *
+     * @param array $table
+     * @return void
+     */
+    private static function writePanelTable(array $table): void
+    {
+        $db = Db::get();
+        $raw = self::panelTableEncoding() === 'json'
+            ? json_encode($table, JSON_UNESCAPED_UNICODE)
+            : serialize($table);
+
+        $db->query(
+            $db->update('table.options')->rows(['value' => $raw])->where('name = ?', 'panelTable')
+        );
+    }
+
+    /**
+     * 当前 Typecho 版本里 options 数组字段使用的格式。
+     *
+     * @return string json | php
+     */
+    private static function panelTableEncoding(): string
+    {
+        $version = '';
+
+        if (class_exists('\Typecho\Common') && defined('\Typecho\Common::VERSION')) {
+            $version = (string) constant('\Typecho\Common::VERSION');
+        }
+
+        return ($version !== '' && version_compare($version, '1.3.0', '>=')) ? 'json' : 'php';
+    }
+
+    /**
      * 注册后台菜单（幂等）
      *
      * Typecho 的 Helper::addMenu() 每次调用都会追加一项，
@@ -265,10 +320,7 @@ class Plugin implements PluginInterface
     private static function syncMenu(): void
     {
         $db = Db::get();
-        $row = $db->fetchRow(
-            $db->select('value')->from('table.options')->where('name = ?', 'panelTable')->limit(1)
-        );
-        $table = empty($row['value']) ? [] : @unserialize($row['value']);
+        $table = self::readPanelTable();
 
         if (!is_array($table)) {
             $table = [];
@@ -312,10 +364,7 @@ class Plugin implements PluginInterface
         ]];
         $table['file'][] = $panelKey;
 
-        \Widget\Base\Options::alloc()->update(
-            ['value' => serialize($table)],
-            $db->sql()->where('name = ?', 'panelTable')
-        );
+        self::writePanelTable($table);
     }
 
     /**

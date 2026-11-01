@@ -2,6 +2,17 @@
 
 本文件记录 IlGallery 的版本变更，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [1.1.8] - 2026-11-01
+
+### 修复
+
+- **在 Typecho 1.3 上启用或停用插件会删掉其它插件的后台菜单**：
+  `panelTable` 从 1.3 起改为 JSON 保存，而 `syncMenu()` / `deactivate()` 仍用
+  `unserialize()` 读取，读出 `false` 后被当成空表，写回时只保留图库自己那一项，
+  于是「有圈」「多语言」等插件的菜单入口全部消失；写回时用的还是 `serialize()`，
+  格式也跟着错位。现在读写都按 Typecho 版本自动选择 JSON 或 serialize，
+  并且**只增删图库自己那一项**，不影响别的插件。
+
 ## [1.1.7] - 2026-10-31
 
 ### 修复
