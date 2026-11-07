@@ -1,0 +1,10 @@
+# 二进制文件不做换行转换，避免 Git 误判为文本
+# 注意：不要加 `* text=auto eol=lf`，仓库早期通过网页上传的文件是混合换行符，
+# 加这条会让 Git 重新规范化所有历史文件，产生整库无意义 diff。
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.zip binary

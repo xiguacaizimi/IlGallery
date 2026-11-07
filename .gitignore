@@ -1,0 +1,26 @@
+# 本地测试环境（含 Typecho 源码、数据库、测试脚本，不要进仓库）
+_sandbox/
+
+# 开发期的参考资料（主题源码、参考截图等）
+_reference*/
+_refs/
+
+# 从 GitHub 下载的旧版仓库副本（不是插件源码，不要提交）
+_gallery/
+
+# WorkBuddy 工作数据
+.workbuddy/
+
+# 编辑器与系统文件
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 打包产物
+*.zip
+*.tar.gz
+*.rar
+
+# 日志
+*.log
