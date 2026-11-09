@@ -70,6 +70,53 @@ $ilgIcon = function (string $name, int $size = 16, float $stroke = 2): string {
     <?php $this->need('template-parts/left.php'); ?>
 <?php endif; ?>
 <div class="col-12 col-md-12 col-lg-<?php echo $layoutMode === 'one' ? '12' : ($layoutMode === 'three' ? '8' : '9'); ?>" id="middle">
+    <?php /* 关键 CSS 随 HTML 一起注入：主题的 PJAX 用 innerHTML 替换 #middle，
+             外链 <link> 此时是异步加载的，样式到达前会出现「封面原图铺满屏幕、
+             查看器整块裸露」的闪屏。这段兜底规则保证首帧布局就是正确的。 */ ?>
+    <style id="ilg-critical">
+        .album-page-shell { width: 100%; max-width: 100%; box-sizing: border-box; }
+        .album-cover-grid {
+            display: grid;
+            grid-template-columns: repeat(var(--ilg-album-cols, 3), minmax(0, 1fr));
+            gap: 14px;
+        }
+        .album-photo-grid {
+            display: grid;
+            grid-template-columns: repeat(var(--ilg-photo-cols, 6), minmax(0, 1fr));
+            gap: 8px;
+        }
+        .album-cover-media {
+            position: relative;
+            height: 0;
+            padding-top: 75%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .album-photo-item {
+            position: relative;
+            display: block;
+            height: 0;
+            padding-top: calc(100% - 2px);
+            box-sizing: border-box;
+            overflow: hidden;
+            min-width: 0;
+        }
+        .album-cover-media > img,
+        .album-photo-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .album-viewer { width: 100%; }
+        #ilgPage:not(.is-viewing) .album-viewer { display: none; }
+        #ilgPage.is-viewing .album-detail-heading,
+        #ilgPage.is-viewing .album-photo-grid,
+        #ilgPage.is-viewing .album-pagination { display: none; }
+    </style>
     <link rel="stylesheet" href="<?php echo htmlspecialchars($pluginAssets); ?>/gallery.css?v=<?php echo Plugin::VERSION; ?>">
     <?php $this->need('template-parts/nav-menu.php'); ?>
 
