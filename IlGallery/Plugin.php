@@ -10,7 +10,7 @@
  *
  * @package 图库相册
  * @author xiguacaizimi
- * @version 1.1.10
+ * @version 1.1.11
  * @link https://www.xiguacaizimi.top
  */
 
@@ -30,13 +30,19 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
 class Plugin implements PluginInterface
 {
     /** 插件版本 */
-    public const VERSION = '1.1.10';
+    public const VERSION = '1.1.11';
 
     /** 前台图库路由名 */
     public const ROUTE = 'ilgallery';
 
     /** 前台相册详情路由名 */
     public const ROUTE_ALBUM = 'ilgallery_album';
+
+    /** 带 .html 后缀的图库首页路由（适配 Typecho 永久链接带后缀的站点） */
+    public const ROUTE_HTML = 'ilgallery_html';
+
+    /** 带 .html 后缀的相册详情路由 */
+    public const ROUTE_ALBUM_HTML = 'ilgallery_album_html';
 
     /** 后台菜单名 */
     private const MENU_NAME = '图库';
@@ -61,13 +67,36 @@ class Plugin implements PluginInterface
         // 让后台自动创建的「相册」页面直接渲染图库（左侧导航指向该页面）
         \Typecho\Plugin::factory('Widget\\Archive')->beforeRender = [self::class, 'beforeRender'];
 
-        // 先移除旧路由，保证重复启用时顺序稳定
+        self::syncRoutes();
+    }
+
+    /**
+     * 注册前台路由（幂等）。
+     *
+     * 同时支持 /gallery/、/gallery/{slug}/ 和带 .html 后缀的
+     * /gallery.html、/gallery/{slug}.html —— 后两者由插件自己的 Widget 直接接管，
+     * 不依赖 Typecho 的独立页面，也不受主题模板或自定义字段影响。
+     * 必须插在 feedback 路由之前，否则带别名的地址会被评论跳转路由截获。
+     */
+    private static function syncRoutes(): void
+    {
+        self::removeRoutes();
+
+        $widget = 'TypechoPlugin\\IlGallery\\Widget\\Gallery';
+
+        Helper::addRoute(self::ROUTE_ALBUM_HTML, '/gallery/[album:alpha].html', $widget, 'render', 'index');
+        Helper::addRoute(self::ROUTE_HTML, '/gallery.html', $widget, 'render', 'index');
+        Helper::addRoute(self::ROUTE_ALBUM, '/gallery/[album:alpha]/', $widget, 'render', 'index');
+        Helper::addRoute(self::ROUTE, '/gallery/', $widget, 'render', 'index');
+    }
+
+    /** 移除本插件注册的全部前台路由 */
+    private static function removeRoutes(): void
+    {
         Helper::removeRoute(self::ROUTE);
         Helper::removeRoute(self::ROUTE_ALBUM);
-
-        // 必须插在 feedback 路由之前，否则 /gallery/{slug}/ 会被评论跳转路由截获
-        Helper::addRoute(self::ROUTE_ALBUM, '/gallery/[album:alpha]/', 'TypechoPlugin\\IlGallery\\Widget\\Gallery', 'render', 'index');
-        Helper::addRoute(self::ROUTE, '/gallery/', 'TypechoPlugin\\IlGallery\\Widget\\Gallery', 'render', 'index');
+        Helper::removeRoute(self::ROUTE_HTML);
+        Helper::removeRoute(self::ROUTE_ALBUM_HTML);
     }
 
     /**
@@ -109,8 +138,7 @@ class Plugin implements PluginInterface
             self::writePanelTable($table);
         }
 
-        Helper::removeRoute(self::ROUTE);
-        Helper::removeRoute(self::ROUTE_ALBUM);
+        self::removeRoutes();
     }
 
     /**
@@ -151,10 +179,7 @@ class Plugin implements PluginInterface
 
         // 反复注册不会重复，但先移除可保证路由顺序稳定（必须在 feedback 之前）
         try {
-            Helper::removeRoute(self::ROUTE);
-            Helper::removeRoute(self::ROUTE_ALBUM);
-            Helper::addRoute(self::ROUTE_ALBUM, '/gallery/[album:alpha]/', 'TypechoPlugin\\IlGallery\\Widget\\Gallery', 'render', 'index');
-            Helper::addRoute(self::ROUTE, '/gallery/', 'TypechoPlugin\\IlGallery\\Widget\\Gallery', 'render', 'index');
+            self::syncRoutes();
         } catch (\Throwable $e) {
             // 忽略
         }
@@ -272,6 +297,15 @@ class Plugin implements PluginInterface
         }
 
         Store::adoptHostPage($cid);
+
+        // 只替换插件文件、没有重新启用时，新路由还没写进 routingTable。
+        // 借这次访问顺手补齐，之后 /gallery.html 会直接由插件 Widget 接管。
+        try {
+            self::syncRoutes();
+        } catch (\Throwable $e) {
+            // 路由写入失败不影响本次渲染
+        }
+
         Renderer::render($archive);
         exit;
     }

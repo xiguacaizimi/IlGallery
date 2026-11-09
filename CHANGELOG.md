@@ -2,6 +2,31 @@
 
 本文件记录 IlGallery 的版本变更，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [1.1.11] - 2026-11-09
+
+### 新增
+
+- **原生支持 `.html` 后缀地址**：新增两条前台路由
+  `/gallery.html` 与 `/gallery/[album:alpha].html`，由插件自己的 Widget 直接接管渲染，
+  不再依赖 Typecho 的独立页面、自定义字段或主题模板。
+  适用于永久链接带 `.html` 后缀、导航指向 `/gallery.html` 的站点。
+  原有的 `/gallery/`、`/gallery/{slug}/` 继续保留，四种地址同时可用。
+
+### 变更
+
+- 四条路由统一由 `syncRoutes()` / `removeRoutes()` 管理，启用、停用、一键修复都走同一处
+- 只替换插件文件、没重新启用时新路由尚未写入 `routingTable`：
+  现在访问一次 `/gallery.html`（命中承载页兜底分支）会自动补齐路由并迁移承载标记，
+  不必非得进后台点「修复页面与路由」
+
+### 验证
+
+- 删除 `ilgalleryHost` 字段后，`/gallery.html` 与 `/gallery/{slug}.html` 仍正常渲染，
+  且不含页面正文残留，证明是路由接管而非页面钩子兜底
+- 干净初始态（无 `.html` 路由 + 承载字段挂错 cid）下访问一次即自愈：
+  四条路由全部补齐、字段迁回正确 cid
+- Typecho 1.3.0 / 1.2.1 双版本通过
+
 ## [1.1.10] - 2026-11-09
 
 ### 修复
