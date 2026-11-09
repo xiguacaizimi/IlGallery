@@ -531,6 +531,42 @@ class Store
     }
 
     /**
+     * 把「承载图库」的标记迁到指定页面。
+     *
+     * 承载页被删除后重建时，旧标记可能仍挂在另一个 cid 上，
+     * 导致 hostPage() 一直返回错误的页面。这里清掉旧标记、
+     * 只给当前页面写一份，后续请求就能走 cid 精确匹配的快速路径。
+     * 写入失败不影响本次渲染，兜底判断下次仍会生效。
+     */
+    public static function adoptHostPage(int $cid): void
+    {
+        if ($cid <= 0) {
+            return;
+        }
+
+        $db = self::db();
+
+        try {
+            $db->query(
+                $db->delete('table.fields')->where('name = ?', 'ilgalleryHost')
+            );
+            $db->query(
+                $db->insert('table.fields')->rows([
+                    'cid'         => $cid,
+                    'name'        => 'ilgalleryHost',
+                    'type'        => 'str',
+                    'str_value'   => '1',
+                    'int_value'   => 0,
+                    'float_value' => 0,
+                ])
+            );
+            self::flushHostPage();
+        } catch (\Throwable $e) {
+            // 字段表结构异常时保持静默，页面渲染不受影响
+        }
+    }
+
+    /**
      * 相册数据补全：缩略图/大图地址、可读大小、日期
      */
     public static function decorateImage(array $row): array

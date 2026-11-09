@@ -10,7 +10,7 @@
  *
  * @package 图库相册
  * @author xiguacaizimi
- * @version 1.1.8
+ * @version 1.1.9
  * @link https://www.xiguacaizimi.top
  */
 
@@ -30,7 +30,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
 class Plugin implements PluginInterface
 {
     /** 插件版本 */
-    public const VERSION = '1.1.8';
+    public const VERSION = '1.1.9';
 
     /** 前台图库路由名 */
     public const ROUTE = 'ilgallery';
@@ -232,6 +232,11 @@ class Plugin implements PluginInterface
     /**
      * 独立页面入口：当访问的是承载图库的页面时，接管渲染
      *
+     * 正常情况下按 hostPage() 的 cid 精确匹配；如果承载页面被删掉后重建
+     * （例如用户手动新建了同别名的页面），旧的 ilgalleryHost 字段仍指向旧 cid，
+     * 严格比对会让新页面变成一片空白。这里补一层按别名的兜底，并把标记
+     * 迁到当前页面，实现一次性自愈。
+     *
      * @param mixed $archive
      */
     public static function beforeRender($archive): void
@@ -240,12 +245,33 @@ class Plugin implements PluginInterface
             return;
         }
 
+        $cid = (int)$archive->cid;
         $page = Store::hostPage();
+        $hostCid = (int)($page['cid'] ?? 0);
 
-        if (empty($page) || (int)$archive->cid !== (int)$page['cid']) {
+        if ($hostCid > 0 && $hostCid === $cid) {
+            Renderer::render($archive);
+            exit;
+        }
+
+        $db = Db::get();
+        $row = $db->fetchRow(
+            $db->select('slug')->from('table.contents')
+                ->where('cid = ?', $cid)
+                ->where('type = ?', 'page')
+                ->limit(1)
+        );
+
+        $slug = (string)($row['slug'] ?? '');
+        $hostSlug = (string)($page['slug'] ?? '');
+        // 默认承载别名始终有效，避免旧页面被改名后连带兜底一起失效
+        $validSlugs = array_unique(array_filter([$hostSlug, 'gallery']));
+
+        if ($slug === '' || !in_array($slug, $validSlugs, true)) {
             return;
         }
 
+        Store::adoptHostPage($cid);
         Renderer::render($archive);
         exit;
     }
@@ -423,7 +449,7 @@ class Plugin implements PluginInterface
         $db = Db::get();
 
         $exists = $db->fetchRow(
-            $db->select('c.cid')->from('table.contents AS c')
+            $db->select('c.cid', 'c.slug')->from('table.contents AS c')
                 ->join('table.fields AS f', 'c.cid = f.cid', Db::LEFT_JOIN)
                 ->where('f.name = ?', 'ilgalleryHost')
                 ->where('c.type = ?', 'page')
@@ -431,7 +457,33 @@ class Plugin implements PluginInterface
         );
 
         if (!empty($exists)) {
-            return (int)$exists['cid'];
+            $oldSlug = (string)($exists['slug'] ?? '');
+            // 承载页被改名后旧标记已经失效，清掉重新认领
+            if ($oldSlug !== '' && strpos($oldSlug, 'gallery') === 0) {
+                return (int)$exists['cid'];
+            }
+
+            try {
+                $db->query($db->delete('table.fields')->where('name = ?', 'ilgalleryHost'));
+            } catch (\Throwable $e) {
+                // 忽略
+            }
+            Store::flushHostPage();
+        }
+
+        // 已有同别名的页面（包括用户手动新建的）直接复用并补上标记，
+        // 不再另建 gallery-xxxxxx，否则导航仍指向旧地址、图库还是打不开
+        $existing = $db->fetchRow(
+            $db->select('cid')->from('table.contents')
+                ->where('slug = ?', 'gallery')
+                ->where('type = ?', 'page')
+                ->limit(1)
+        );
+
+        if (!empty($existing)) {
+            $cid = (int)$existing['cid'];
+            Store::adoptHostPage($cid);
+            return $cid;
         }
 
         $slug = 'gallery';
