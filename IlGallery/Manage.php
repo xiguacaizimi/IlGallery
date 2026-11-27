@@ -146,6 +146,106 @@ if ($isPost && $do === 'upload') {
 }
 
 /* =========================================================
+ * 接口：从外部链接添加照片
+ *
+ * 只保存 URL，不在服务端抓取图片（避免 SSRF 与服务器带宽开销），
+ * 前台由浏览器直接向图片所在服务器请求。
+ * ========================================================= */
+if ($isPost && $do === 'addRemote') {
+    if (!ilg_check_token($security, $request)) {
+        ilg_json(['ok' => false, 'error' => '安全校验失败，请刷新页面重试'], 403);
+    }
+
+    $albumId = (int)($request->get('id') ?? 0);
+    $album = Store::album($albumId);
+
+    if (empty($album)) {
+        ilg_json(['ok' => false, 'error' => '相册不存在'], 404);
+    }
+
+    $raw = (string)($request->get('urls') ?? '');
+    $lines = array_values(array_filter(
+        array_map('trim', preg_split('/\r\n|\r|\n/', $raw) ?: []),
+        function ($line) {
+            return $line !== '';
+        }
+    ));
+
+    if (empty($lines)) {
+        ilg_json(['ok' => false, 'error' => '请填写图片链接'], 400);
+    }
+
+    if (count($lines) > 20) {
+        ilg_json(['ok' => false, 'error' => '一次最多添加 20 个链接，请分批添加'], 400);
+    }
+
+    $added = [];
+    $errors = [];
+
+    foreach ($lines as $index => $url) {
+        $no = $index + 1;
+
+        if (!preg_match('#^https?://#i', $url)) {
+            $errors[] = '第 ' . $no . ' 行：只支持 http:// 或 https:// 开头的图片链接';
+            continue;
+        }
+
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+            $errors[] = '第 ' . $no . ' 行：链接格式不正确';
+            continue;
+        }
+
+        // 数据库 path / thumb 字段是 varchar(255)，超长会被 MySQL 静默截断
+        if (strlen($url) > 255) {
+            $errors[] = '第 ' . $no . ' 行：链接超过 255 字符，建议用短链接';
+            continue;
+        }
+
+        if (preg_match('/[\s"\'<>]/', $url)) {
+            $errors[] = '第 ' . $no . ' 行：链接里不能包含空格或引号';
+            continue;
+        }
+
+        $imageId = Store::addImage([
+            'album_id' => $albumId,
+            'title'    => Store::remoteTitle($url),
+            'path'     => $url,
+            'thumb'    => $url,
+            'width'    => 0,
+            'height'   => 0,
+            'size'     => 0,
+            'mime'     => Store::remoteMime($url),
+        ]);
+
+        if ($imageId <= 0) {
+            $errors[] = '第 ' . $no . ' 行：写入数据库失败';
+            continue;
+        }
+
+        $image = Store::image($imageId);
+        $added[] = [
+            'id'       => $imageId,
+            'title'    => $image['title'],
+            'thumbUrl' => $image['thumbUrl'],
+            'url'      => $image['url'],
+            'sizeText' => $image['sizeText'],
+            'isRemote' => true,
+        ];
+    }
+
+    if (empty($added) && !empty($errors)) {
+        ilg_json(['ok' => false, 'error' => implode('；', $errors)]);
+    }
+
+    ilg_json([
+        'ok'     => true,
+        'images' => $added,
+        'errors' => $errors,
+        'total'  => Store::countImages($albumId),
+    ]);
+}
+
+/* =========================================================
  * 接口：删除照片
  * ========================================================= */
 if ($isPost && $do === 'deleteImage') {
@@ -574,6 +674,27 @@ include __TYPECHO_ROOT_DIR__ . '/admin/header.php';
                 <div class="ilg-drop-progress" id="ilgProgress"></div>
             </div>
 
+            <div class="ilg-remote" id="ilgRemote">
+                <div class="ilg-remote-head">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3 -3a5 5 0 0 0 -7.07 -7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0 -7.54 -.54l-3 3a5 5 0 0 0 7.07 7.07l1.71 -1.71"/>
+                    </svg>
+                    <div>
+                        <strong>从链接添加照片</strong>
+                        <small>支持 http(s) 图片直链，一行一个可批量添加。图片由外部服务器提供，不会转存到本站；链接需以图片格式结尾且允许外链引用。</small>
+                    </div>
+                </div>
+                <textarea id="ilgRemoteUrls" rows="2" spellcheck="false"
+                          placeholder="https://cdn.example.com/photo.png"></textarea>
+                <div class="ilg-remote-actions">
+                    <button type="button" class="btn primary" id="ilgRemoteAdd">添加到相册</button>
+                    <span class="ilg-remote-hint" id="ilgRemoteHint" role="status"></span>
+                </div>
+            </div>
+
             <div class="ilg-photo-admin" id="ilgPhotoAdmin"
                  data-endpoint="<?php echo htmlspecialchars($panelUrl); ?>"
                  data-album="<?php echo (int)$album['id']; ?>"
@@ -582,6 +703,9 @@ include __TYPECHO_ROOT_DIR__ . '/admin/header.php';
                     <div class="ilg-card" draggable="true" data-id="<?php echo (int)$photo['id']; ?>">
                         <div class="ilg-card-media">
                             <img src="<?php echo htmlspecialchars($photo['thumbUrl']); ?>" alt="" loading="lazy">
+                            <?php if (!empty($photo['isRemote'])): ?>
+                                <span class="ilg-card-source" title="外部链接图片">外链</span>
+                            <?php endif; ?>
                             <span class="ilg-card-badge<?php echo (int)$album['cover_id'] === (int)$photo['id'] ? ' is-on' : ''; ?>">封面</span>
                             <span class="ilg-card-drag" title="拖动排序">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"

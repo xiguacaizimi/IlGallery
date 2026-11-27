@@ -10,7 +10,7 @@
  *
  * @package 图库相册
  * @author xiguacaizimi
- * @version 1.1.11
+ * @version 1.2.0
  * @link https://www.xiguacaizimi.top
  */
 
@@ -30,7 +30,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
 class Plugin implements PluginInterface
 {
     /** 插件版本 */
-    public const VERSION = '1.1.11';
+    public const VERSION = '1.2.0';
 
     /** 前台图库路由名 */
     public const ROUTE = 'ilgallery';

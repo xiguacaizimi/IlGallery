@@ -416,7 +416,7 @@ class Store
             return;
         }
 
-        if ($removeFiles) {
+        if ($removeFiles && empty($image['isRemote'])) {
             foreach (['path', 'thumb'] as $key) {
                 if (!empty($image[$key])) {
                     $file = __TYPECHO_ROOT_DIR__ . $image[$key];
@@ -571,18 +571,71 @@ class Store
      */
     public static function decorateImage(array $row): array
     {
+        $path = (string)$row['path'];
+        $isRemote = self::isRemoteUrl($path);
+
         $row['id'] = (int)$row['id'];
         $row['album_id'] = (int)$row['album_id'];
         $row['width'] = (int)$row['width'];
         $row['height'] = (int)$row['height'];
         $row['size'] = (int)$row['size'];
-        $row['url'] = self::url((string)$row['path']);
-        $row['thumbUrl'] = self::url((string)($row['thumb'] !== '' ? $row['thumb'] : $row['path']));
-        $row['sizeText'] = self::sizeText((int)$row['size']);
+        $row['isRemote'] = $isRemote;
+        $row['url'] = self::url($path);
+        $row['thumbUrl'] = self::url((string)($row['thumb'] !== '' ? $row['thumb'] : $path));
+        $row['sizeText'] = $isRemote ? '外链图片' : self::sizeText((int)$row['size']);
         $row['date'] = date('Y-m-d H:i', (int)$row['created']);
-        $row['fileName'] = basename((string)$row['path']);
+        $row['fileName'] = self::displayName($path);
 
         return $row;
+    }
+
+    /**
+     * 是否为外部图片直链（http/https 开头）
+     */
+    public static function isRemoteUrl(string $path): bool
+    {
+        return (bool)preg_match('#^https?://#i', $path);
+    }
+
+    /**
+     * 用于展示的文件名：外链取 URL 路径的最后一段并解码，本地取 basename
+     */
+    public static function displayName(string $path): string
+    {
+        if (self::isRemoteUrl($path)) {
+            $urlPath = (string)parse_url($path, PHP_URL_PATH);
+            $name = urldecode(basename($urlPath));
+
+            return $name !== '' ? $name : $path;
+        }
+
+        return basename($path);
+    }
+
+    /**
+     * 从外链推导照片标题（去掉扩展名）
+     */
+    public static function remoteTitle(string $url): string
+    {
+        $name = self::displayName($url);
+        $name = trim((string)preg_replace('/\.[a-z0-9]{2,5}$/i', '', $name));
+
+        return $name !== '' ? mb_substr($name, 0, 180, 'UTF-8') : '外部图片';
+    }
+
+    /**
+     * 从外链后缀推断 MIME（仅用于记录，前台不依赖）
+     */
+    public static function remoteMime(string $url): string
+    {
+        $ext = strtolower((string)pathinfo((string)parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+        $map = [
+            'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
+            'gif' => 'image/gif', 'webp' => 'image/webp', 'bmp' => 'image/bmp',
+            'svg' => 'image/svg+xml', 'avif' => 'image/avif',
+        ];
+
+        return $map[$ext] ?? '';
     }
 
     /**

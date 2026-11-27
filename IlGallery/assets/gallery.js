@@ -266,6 +266,19 @@
         if (downloadNode) {
             downloadNode.href = photo.url;
             downloadNode.setAttribute('download', photo.fileName || '');
+
+            // 跨域外链图片浏览器会忽略 download 属性并直接导航过去，
+            // 改成新标签打开，避免用户点「下载」后离开图库页面
+            var isExternal = /^https?:\/\//i.test(photo.url || '')
+                && photo.url.indexOf(location.origin) !== 0;
+
+            if (isExternal) {
+                downloadNode.setAttribute('target', '_blank');
+                downloadNode.setAttribute('rel', 'noopener noreferrer');
+            } else {
+                downloadNode.removeAttribute('target');
+                downloadNode.removeAttribute('rel');
+            }
         }
 
         zoom = 1;

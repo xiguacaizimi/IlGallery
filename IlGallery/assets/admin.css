@@ -11,6 +11,7 @@
 .ilg-panel,
 .ilg-hint,
 .ilg-drop,
+.ilg-remote,
 .ilg-album-summary,
 .ilg-photo-admin,
 .ilg-tips,
@@ -631,6 +632,95 @@ h2.ilg-page-title a.btn.primary:hover {
     background: #467B96;
 }
 
+/* 外部链接图片标记 */
+.ilg-card-source {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    padding: 2px 7px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #fff;
+    background: rgba(73, 80, 87, .78);
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+/* 从链接添加照片 */
+.ilg-remote {
+    margin: 14px 0 20px;
+    padding: 14px 16px;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 6px;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+    box-sizing: border-box;
+}
+
+.ilg-remote-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.ilg-remote-head > svg {
+    flex: 0 0 auto;
+    margin-top: 1px;
+    color: #467B96;
+}
+
+.ilg-remote-head strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 14px;
+}
+
+.ilg-remote-head small {
+    display: block;
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.ilg-remote textarea {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 4px;
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #212529);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.ilg-remote textarea:focus {
+    outline: none;
+    border-color: #467B96;
+    box-shadow: 0 0 0 2px rgba(70, 123, 150, .15);
+}
+
+.ilg-remote-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.ilg-remote-hint {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 12px;
+}
+
+.ilg-remote button[disabled] {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
 .ilg-card-drag {
     position: absolute;
     right: 6px;
@@ -723,6 +813,25 @@ h2.ilg-page-title a.btn.primary:hover {
 
     .ilg-hint {
         align-items: flex-start;
+    }
+
+    /* 外链输入区：16px 字号避免 iOS 聚焦时自动放大，按钮加大触摸区 */
+    .ilg-remote {
+        padding: 12px;
+    }
+
+    .ilg-remote textarea {
+        font-size: 16px;
+        min-height: 88px;
+    }
+
+    .ilg-remote-actions .btn {
+        min-height: 38px;
+        padding: 0 16px;
+    }
+
+    .ilg-card-source {
+        font-size: 11px;
     }
 
     /* 相册列表：7 列表格在手机上会把「相册」这一列压到只剩几像素，

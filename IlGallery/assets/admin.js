@@ -101,6 +101,14 @@
         img.loading = 'lazy';
         media.appendChild(img);
 
+        if (image.isRemote) {
+            var source = document.createElement('span');
+            source.className = 'ilg-card-source';
+            source.title = '外部链接图片';
+            source.textContent = '外链';
+            media.appendChild(source);
+        }
+
         var badge = document.createElement('span');
         badge.className = 'ilg-card-badge';
         badge.textContent = '封面';
@@ -429,6 +437,69 @@
         fileInput.addEventListener('change', function () {
             upload(fileInput.files);
             fileInput.value = '';
+        });
+    }
+
+    /* ---------- 从外部链接添加照片 ---------- */
+
+    var remoteUrls = document.getElementById('ilgRemoteUrls');
+    var remoteAdd = document.getElementById('ilgRemoteAdd');
+    var remoteHint = document.getElementById('ilgRemoteHint');
+
+    if (remoteUrls && remoteAdd) {
+        function addRemote() {
+            var raw = remoteUrls.value.trim();
+
+            if (!raw) {
+                toast('请先粘贴图片链接', true);
+                remoteUrls.focus();
+                return;
+            }
+
+            remoteAdd.disabled = true;
+            remoteHint.textContent = '正在添加…';
+
+            post('addRemote', {
+                id: config.album,
+                urls: raw
+            }).then(function (result) {
+                remoteAdd.disabled = false;
+
+                if (!result.ok) {
+                    remoteHint.textContent = '';
+                    toast(result.error || '添加失败', true);
+                    return;
+                }
+
+                var list = result.images || [];
+
+                list.forEach(function (image) {
+                    admin.appendChild(buildCard(image));
+                });
+
+                setCount(result.total);
+                remoteUrls.value = '';
+                remoteHint.textContent = list.length ? '已添加 ' + list.length + ' 张外链图片' : '';
+                toast('已添加 ' + list.length + ' 张外链图片');
+
+                if (result.errors && result.errors.length) {
+                    toast(result.errors[0], true);
+                }
+            }).catch(function () {
+                remoteAdd.disabled = false;
+                remoteHint.textContent = '';
+                toast('网络异常，请重试', true);
+            });
+        }
+
+        remoteAdd.addEventListener('click', addRemote);
+
+        // Ctrl / Cmd + Enter 快速提交
+        remoteUrls.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault();
+                addRemote();
+            }
         });
     }
 
